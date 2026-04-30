@@ -1,0 +1,242 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ===== 设计 token：文字 4 级色 ===== */
+:root {
+  --text-1: rgba(255, 255, 255, 1);     /* 主要 */
+  --text-2: rgba(255, 255, 255, 0.6);   /* 次要 */
+  --text-3: rgba(255, 255, 255, 0.4);   /* 辅助 */
+  --text-4: rgba(255, 255, 255, 0.2);   /* 占位 */
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: #333232;
+  color: #e6eaf2;
+  /* Montserrat 覆盖英文/数字，中文落到系统字体 */
+  font-family: "Montserrat", "PingFang SC", "Microsoft YaHei", -apple-system, "Segoe UI", sans-serif;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 1920×1080 固定舞台 */
+.stage {
+  position: relative;
+  width: 1920px;
+  height: 1080px;
+  background: #0a0d12;
+  overflow: hidden;
+  flex-shrink: 0;
+  border-radius: 10px;
+  box-shadow: 0 80px 200px rgba(0, 0, 0, 0.25);
+}
+
+/* 3D 画布容器 */
+.scene-canvas {
+  position: absolute;
+  inset: 0;
+}
+
+/* UI 层 */
+.ui {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.ui > * { pointer-events: auto; }
+
+/* ===== 顶部导航 64px ===== */
+.nav {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 64px;
+  display: flex;
+  padding: 0 24px;
+  background: rgba(17, 17, 17, 0.1);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 5;
+}
+
+/* —— 左侧 logo 区：上下两行 —— */
+.nav-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.logo-main {
+  font-size: 14px;
+  font-weight: 700;       /* Bold */
+  letter-spacing: 0.6px;
+  color: #ffffff;
+  line-height: 1.15;
+}
+.logo-sub {
+  font-size: 10px;
+  font-weight: 600;       /* SemiBold */
+  letter-spacing: 0.4px;
+  color: rgba(255, 255, 255, 0.3);
+  line-height: 1.15;
+  margin-top: 2px;
+}
+
+/* —— 中间 tab 区：每 tab 容器高 64px、左右 padding 16px —— */
+.nav-tabs {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+.tab {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 700;       /* Bold */
+  color: var(--text-3);   /* 未选中 = 3 级（40%） */
+  cursor: pointer;
+  position: relative;
+  user-select: none;
+}
+.tab:hover { color: var(--text-2); }
+.tab.active { color: var(--text-1); }   /* 选中 = 1 级（100%） */
+.tab.active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--text-1);            /* 下划线 = 1 级（100%） */
+}
+
+/* —— 右侧图标 —— */
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.icon-btn {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: #b8c0cc;
+  cursor: pointer;
+}
+
+/* ===== 底部信息栏（2 + 255 + 2 + 96 + 2 = 357px） ===== */
+.bottom-bar {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 357px;
+  display: flex;
+  flex-direction: column;
+  padding: 2px;
+  gap: 2px;
+  z-index: 5;
+}
+.bb-top, .bb-bottom {
+  background: #191919;
+  border-radius: 8px;
+}
+.bb-top    { height: 255px; }
+.bb-bottom { height: 96px; }
+
+/* —— bb-top 内部布局 —— */
+.bb-top {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+}
+.bb-top-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.bb-top-title {
+  font-size: 16px;
+  font-weight: 600;       /* SemiBold */
+  color: var(--text-2);
+}
+
+/* —— 胶囊 —— */
+.bb-pills {
+  display: flex;
+  gap: 8px;
+}
+.bb-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+}
+.bb-pill-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.bb-pill-text {
+  font-size: 12px;
+  font-weight: 400;       /* Regular */
+  color: var(--text-2);
+}
+
+/* —— 趋势图 —— */
+.bb-chart-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-top: 16px;
+  /* 两端渐变消失：左右各 5% 渐隐 */
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 5%,
+    #000 95%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 5%,
+    #000 95%,
+    transparent 100%
+  );
+}
+.bb-chart {
+  flex: 1;
+  width: 100%;
+  display: block;
+}
+.bb-chart-labels {
+  position: relative;
+  height: 12px;
+  margin-top: 8px;          /* 距时间刻度 8px */
+}
+.bb-chart-labels span {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  font-size: 8px;
+  font-weight: 600;          /* SemiBold */
+  color: var(--text-3);
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+  font-variant-numeric: tabular-nums;
+}
