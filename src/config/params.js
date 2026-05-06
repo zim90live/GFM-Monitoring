@@ -168,7 +168,7 @@ export const defaults = {
       rimColor: "#ffffff",
       rimPower: 10.0,        // 越大边缘越细
       rimIntensity: 0.1,    // 边缘亮度
-      baseOpacity: 0,    // 中心不透明度
+      baseOpacity: 0.06,    // 中心不透明度（>0 防止面正对相机时整面消失）
     },
     inner: {
       color: "#44474b",
