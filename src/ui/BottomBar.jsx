@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useView } from "../state/ViewContext.jsx";
 
 const PILLS = [
   { color: "#4fa700", label: "电压" },
@@ -434,8 +435,18 @@ function BottomCells() {
 }
 
 export default function BottomBar() {
+  const { eased } = useView();
+  // 前 60% 转场过程中淡出 + 下滑
+  const k = Math.min(1, eased / 0.6);
+  const style = {
+    transform: `translateY(${k * 420}px)`,
+    opacity: 1 - k,
+    pointerEvents: k >= 1 ? "none" : undefined,
+  };
+  if (k >= 1) return null;
+
   return (
-    <footer className="bottom-bar">
+    <footer className="bottom-bar" style={style}>
       <div className="bb-top">
         <div className="bb-top-header">
           <div className="bb-top-title">电网实时趋势</div>

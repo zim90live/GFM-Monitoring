@@ -1,9 +1,11 @@
-import { useMemo, useEffect } from "react";
+import { useMemo, useEffect, useRef } from "react";
 import * as THREE from "three";
 import { useControls, folder, button } from "leva";
 import { AccumulativeShadows, RandomizedLight } from "@react-three/drei";
+import { useFrame } from "@react-three/fiber";
 import { defaults } from "../config/params.js";
 import { shadowsRef } from "./shadowRef.js";
+import { useView } from "../state/ViewContext.jsx";
 
 function azElToPos(azDeg, elDeg, dist) {
   const az = THREE.MathUtils.degToRad(azDeg);
@@ -16,10 +18,19 @@ function azElToPos(azDeg, elDeg, dist) {
 }
 
 export default function Lights() {
+  const { eRef } = useView();
+  const detailLightRef = useRef();
+  const detailAmbientRef = useRef();
+  const shadowsContainerRef = useRef();
+
   const cfg = useControls(
     "灯光",
     {
       ambient: { value: defaults.lights.ambient, min: 0, max: 3, step: 0.01, label: "环境光" },
+      "详情态": folder({
+        detailFrontIntensity: { value: 0.8, min: 0, max: 5, step: 0.05, label: "正面补光" },
+        detailAmbientBoost: { value: 0, min: 0, max: 3, step: 0.05, label: "环境光增量" },
+      }, { collapsed: true }),
       主光: folder(
         {
           keyIntensity: { value: defaults.lights.key.intensity, min: 0, max: 5, step: 0.01, label: "强度" },
@@ -72,9 +83,27 @@ export default function Lights() {
     shadowsRef.current?.reset();
   }, [cfg.keyAzimuth, cfg.keyElevation, cfg.keyDistance, sh.radius, sh.frames]);
 
+  // 转场期：详情灯随 e 渐入（0→1），阴影 group 渐出
+  useFrame(() => {
+    const e = eRef.current;
+    const inFactor = Math.max(0, (e - 0.3) / 0.7); // 30% 后开始亮起，到 100% 全亮
+    if (detailLightRef.current) {
+      detailLightRef.current.intensity = cfg.detailFrontIntensity * inFactor;
+    }
+    if (detailAmbientRef.current) {
+      detailAmbientRef.current.intensity = cfg.detailAmbientBoost * inFactor;
+    }
+    if (shadowsContainerRef.current) {
+      const fade = 1 - Math.min(1, e / 0.6);
+      shadowsContainerRef.current.visible = sh.enabled && fade > 0.001;
+    }
+  });
+
   return (
     <>
       <ambientLight intensity={cfg.ambient} />
+      {/* 详情态：额外环境光提亮整体 */}
+      <ambientLight ref={detailAmbientRef} intensity={0} />
 
       {/* 主光（不投实时阴影，让 AccumulativeShadows 接管） */}
       <directionalLight
@@ -89,33 +118,42 @@ export default function Lights() {
         color={cfg.rimColor}
       />
 
+      {/* 详情态正面补光：从 +Z 方向打过来照亮 tile 朝相机的正面，转场后期渐入 */}
+      <directionalLight
+        ref={detailLightRef}
+        position={[0, 4.5, 30]}
+        intensity={0}
+      />
+
       {/* 累积阴影：烘焙完后冻结，每帧 0 成本 */}
       {sh.enabled && (
-        <AccumulativeShadows
-          ref={shadowsRef}
-          key={`${sh.frames}-${sh.scale}`}
-          temporal
-          frames={sh.frames}
-          alphaTest={0.85}
-          scale={sh.scale}
-          opacity={sh.opacity}
-          blend={sh.blend}
-          color="#000000"
-          position={[0, 0.005, 0]}
-        >
-          <RandomizedLight
-            amount={8}
-            radius={sh.radius}
-            ambient={0.5}
-            intensity={Math.PI}
-            position={keyPos}
-            bias={0.001}
-            size={30}        /* 关键：阴影摄像机正交边界，必须覆盖整个场景 */
-            near={0.5}
-            far={120}
-            mapSize={1024}
-          />
-        </AccumulativeShadows>
+        <group ref={shadowsContainerRef}>
+          <AccumulativeShadows
+            ref={shadowsRef}
+            key={`${sh.frames}-${sh.scale}`}
+            temporal
+            frames={sh.frames}
+            alphaTest={0.85}
+            scale={sh.scale}
+            opacity={sh.opacity}
+            blend={sh.blend}
+            color="#000000"
+            position={[0, 0.005, 0]}
+          >
+            <RandomizedLight
+              amount={8}
+              radius={sh.radius}
+              ambient={0.5}
+              intensity={Math.PI}
+              position={keyPos}
+              bias={0.001}
+              size={30}        /* 关键：阴影摄像机正交边界，必须覆盖整个场景 */
+              near={0.5}
+              far={120}
+              mapSize={1024}
+            />
+          </AccumulativeShadows>
+        </group>
       )}
     </>
   );

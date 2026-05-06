@@ -1,11 +1,49 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useGLTF } from "@react-three/drei";
+import { useFrame, useThree } from "@react-three/fiber";
 import { useControls, folder } from "leva";
 import { defaults } from "../config/params.js";
 import { shadowsRef } from "./shadowRef.js";
+import { useView } from "../state/ViewContext.jsx";
 import MetricsHud from "./MetricsHud.jsx";
 import modelUrl from "../../assets/models/模型导出 - 0430.glb?url";
+
+// ============== 外壳剪影描边材质（屏幕空间挤出 + 反向 hull） ==============
+function createOutlineMaterial(color = "#6b6b6b", thicknessPx = 1) {
+  return new THREE.ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    depthTest: true,
+    side: THREE.BackSide,
+    uniforms: {
+      uThickness: { value: thicknessPx },
+      uColor: { value: new THREE.Color(color) },
+      uOpacity: { value: 1.0 },
+      uResolution: { value: new THREE.Vector2(1920, 1080) },
+    },
+    vertexShader: /* glsl */ `
+      uniform float uThickness;
+      uniform vec2 uResolution;
+      void main() {
+        vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
+        vec4 clipPos = projectionMatrix * mvPos;
+        // 在屏幕空间沿法线方向挤出 N 像素
+        vec4 clipNormal = projectionMatrix * modelViewMatrix * vec4(normal, 0.0);
+        vec2 dir = length(clipNormal.xy) > 1e-5 ? normalize(clipNormal.xy) : vec2(0.0);
+        clipPos.xy += dir * uThickness * 2.0 / uResolution * clipPos.w;
+        gl_Position = clipPos;
+      }
+    `,
+    fragmentShader: /* glsl */ `
+      uniform vec3 uColor;
+      uniform float uOpacity;
+      void main() {
+        gl_FragColor = vec4(uColor, uOpacity);
+      }
+    `,
+  });
+}
 
 // ============== Fresnel 着色器材质（外壳用） ==============
 function createFresnelMaterial() {
@@ -91,6 +129,16 @@ export default function Models({ envIntensity = 1 }) {
   const fresnelMat = useMemo(() => createFresnelMaterial(), []);
   useEffect(() => () => fresnelMat.dispose(), [fresnelMat]);
 
+  // 共享一份外壳描边材质（1px / #6b6b6b）
+  const outlineMat = useMemo(() => createOutlineMaterial("#6b6b6b", 1), []);
+  useEffect(() => () => outlineMat.dispose(), [outlineMat]);
+
+  // 把当前 canvas 的像素尺寸同步给描边 shader（决定 1px 在 NDC 中的大小）
+  const { size } = useThree();
+  useEffect(() => {
+    outlineMat.uniforms.uResolution.value.set(size.width, size.height);
+  }, [outlineMat, size.width, size.height]);
+
   // 一次性：clone 后扫描——把"外壳"的 mesh 替换成 fresnelMat 且关闭投影；
   // 普通材质保留并收集引用以便后续应用 leva 参数
   const setup = useMemo(() => {
@@ -109,10 +157,23 @@ export default function Models({ envIntensity = 1 }) {
           c.material = fresnelMat;
           c.castShadow = false;
           c.receiveShadow = false;
+          // 关闭 frustum 剔除（normalize 后 boundingSphere 可能不准，相机大角度旋转会误剔除）
+          c.frustumCulled = false;
+          // 添加描边子 mesh（共享几何体，用反向 hull + 屏幕空间挤出）
+          if (!c.userData.outlineAttached) {
+            const outline = new THREE.Mesh(c.geometry, outlineMat);
+            outline.frustumCulled = false;
+            outline.castShadow = false;
+            outline.receiveShadow = false;
+            outline.userData.isOutline = true;
+            c.add(outline);
+            c.userData.outlineAttached = true;
+          }
         } else {
           // 普通设备：保留原材质，开阴影，记录到 inner 列表
           c.castShadow = true;
           c.receiveShadow = true;
+          c.frustumCulled = false;
           for (const m of mats) {
             if (m && !result.innerMaterials.includes(m)) {
               result.innerMaterials.push(m);
@@ -135,7 +196,7 @@ export default function Models({ envIntensity = 1 }) {
       result[key] = obj;
     }
     return result;
-  }, [scene, fresnelMat]);
+  }, [scene, fresnelMat, outlineMat]);
 
   // 应用 Fresnel uniforms（外壳）
   useEffect(() => {
@@ -179,10 +240,58 @@ export default function Models({ envIntensity = 1 }) {
       ? transform.targetSize / setup.grid.userData.maxAxis
       : 1;
 
+  // 转场淡出：opacity = 1-clamp(t/0.5)，position.x 滑出 ±SLIDE_OUT
+  const SLIDE_OUT = 4;
+  const storageGroupRef = useRef();
+  const gridGroupRef = useRef();
+  const { eRef } = useView();
+
+  // 让 inner 材质支持透明（便于淡出）
+  useEffect(() => {
+    for (const m of setup.innerMaterials) {
+      if (m) m.transparent = true;
+    }
+  }, [setup.innerMaterials]);
+
+  // 记录 fresnel 原始 baseOpacity / rimIntensity（受 leva 控制 → 只读不写）
+  // inner: 把 transparent 设为 true，opacity 由我们驱动
+  // 这里每帧只乘以一个 fade 因子（1-progress）
+  // fresnel 的原始 alpha = baseOpacity + fresnel*rimIntensity，用 uniforms 直接缩放
+  useFrame(() => {
+    const e = eRef.current;
+    const fade = 1 - Math.min(1, e / 0.5); // 前半段就淡完
+    const slide = e * SLIDE_OUT;            // 滑出量
+
+    if (storageGroupRef.current) {
+      storageGroupRef.current.position.x = transform.sx - slide;
+      storageGroupRef.current.visible = fade > 0.001;
+    }
+    if (gridGroupRef.current) {
+      gridGroupRef.current.position.x = transform.gx + slide;
+      gridGroupRef.current.visible = fade > 0.001;
+    }
+
+    // fresnel：缩放 baseOpacity 和 rimIntensity（这样能正确淡出）
+    if (fresnelMat?.uniforms) {
+      fresnelMat.uniforms.uBaseOpacity.value = mat.shellBaseOpacity * fade;
+      fresnelMat.uniforms.uRimIntensity.value = mat.shellRimIntensity * fade;
+    }
+    // 外壳描边随转场一起淡出
+    if (outlineMat?.uniforms) {
+      outlineMat.uniforms.uOpacity.value = fade;
+    }
+    // inner：直接乘 opacity
+    for (const m of setup.innerMaterials) {
+      if (!m) continue;
+      m.opacity = fade;
+    }
+  });
+
   return (
     <>
       {setup.storage && (
         <group
+          ref={storageGroupRef}
           position={[transform.sx, transform.sy, transform.sz]}
           rotation={[0, THREE.MathUtils.degToRad(transform.srot), 0]}
           scale={storageScale}
@@ -192,6 +301,7 @@ export default function Models({ envIntensity = 1 }) {
       )}
       {setup.grid && (
         <group
+          ref={gridGroupRef}
           position={[transform.gx, transform.gy, transform.gz]}
           rotation={[0, THREE.MathUtils.degToRad(transform.grot), 0]}
           scale={gridScale}

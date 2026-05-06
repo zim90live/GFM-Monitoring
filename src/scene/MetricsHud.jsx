@@ -1,5 +1,6 @@
 import React from "react";
 import { Html } from "@react-three/drei";
+import { useView } from "../state/ViewContext.jsx";
 
 const LEFT = [
   { value: "24.001", unit: "kW", label: "可充电功率" },
@@ -40,15 +41,18 @@ function Block({ side, items }) {
 
 // 跟随两个模型的浮动指标面板
 export default function MetricsHud({ transforms }) {
+  const { eased } = useView();
   if (!transforms) return null;
   const { sx, sy, sz, gx, gy, gz } = transforms;
+  const fade = 1 - Math.min(1, eased / 0.5);
+  if (fade <= 0) return null;
 
   return (
     <>
       {/* 锚点放在模型脚底（y 略低）→ 投影到屏幕时位于模型下方一点 */}
       <Html
         position={[sx - 1, sy - 1.6, sz]}
-        style={{ pointerEvents: "none" }}
+        style={{ pointerEvents: "none", opacity: fade }}
         zIndexRange={[10, 0]}
       >
         <Block side="left" items={LEFT} />
@@ -56,7 +60,7 @@ export default function MetricsHud({ transforms }) {
 
       <Html
         position={[gx + 1, gy - 1.6, gz]}
-        style={{ pointerEvents: "none" }}
+        style={{ pointerEvents: "none", opacity: fade }}
         zIndexRange={[10, 0]}
       >
         <Block side="right" items={RIGHT} />

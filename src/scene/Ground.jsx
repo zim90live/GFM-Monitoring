@@ -1,10 +1,14 @@
 import { useEffect, useRef } from "react";
 import { useControls, folder } from "leva";
 import { MeshReflectorMaterial } from "@react-three/drei";
+import { useFrame } from "@react-three/fiber";
 import { defaults } from "../config/params.js";
+import { useView } from "../state/ViewContext.jsx";
 
 export default function Ground({ envIntensity = 1 }) {
   const matRef = useRef();
+  const meshRef = useRef();
+  const { eRef } = useView();
 
   const cfg = useControls("地面", {
     visible: { value: defaults.ground.visible, label: "显示" },
@@ -28,10 +32,21 @@ export default function Ground({ envIntensity = 1 }) {
     if (matRef.current && "envMapIntensity" in matRef.current) {
       matRef.current.envMapIntensity = envIntensity;
     }
+    if (matRef.current) matRef.current.transparent = true;
   }, [envIntensity]);
+
+  // 进入详情页时地面淡出（前 60% 转场过程）
+  useFrame(() => {
+    if (!matRef.current) return;
+    const e = eRef.current;
+    const fade = 1 - Math.min(1, e / 0.6);
+    matRef.current.opacity = fade;
+    if (meshRef.current) meshRef.current.visible = cfg.visible && fade > 0.001;
+  });
 
   return (
     <mesh
+      ref={meshRef}
       visible={cfg.visible}
       rotation={[-Math.PI / 2, 0, 0]}
       position={[0, -0.01, 0]}

@@ -12,6 +12,13 @@ export const defaults = {
     tiltDeg: 24,
     distance: 38,
     targetY: -4.3,
+    // 详情页（侧视）摄像机机位 —— 环展开成直线后落在屏幕上方
+    detail: {
+      fov: 32,
+      tiltDeg: 4.3,
+      distance: 44,
+      targetY: -1.4,
+    },
   },
 
   // 累积阴影（drei <AccumulativeShadows> + <RandomizedLight>）
@@ -120,6 +127,32 @@ export const defaults = {
       { yOffset: 0.9, ratio: 1 },
       { yOffset: 1.2, ratio: 1 },
     ],
+    // 详情页（展开为直线后）目标参数：tile 沿 X 等距分布，朝向相机
+    detail: {
+      lineY: 4.5,         // 直线在世界 Y（屏幕上偏高）
+      lineZ: 0,           // 直线在世界 Z
+      strideMul: 1.0,     // 直线总长 = 原圆周长 × strideMul（1 = 等长展开）
+      gapRatio: 0.4,      // tile 之间的空隙占比（0=无缝，0.4=每片占 stride 的 60%）
+      backplane: {
+        enabled: false,
+        z: -0.6,          // 背板距离直线后方
+        color: "#36393cff",
+        opacity: 0.85,    // 中心实色不透明度（边缘自动淡出，由 shader 处理）
+      },
+    },
+  },
+
+  // 详情页 UI 参数（选区框等）
+  eventDetail: {
+    selection: {
+      top: 254,            // 选区框顶部 px（与 3D 直线 tile 的屏幕投影对齐）
+      height: 64,          // 选区框高度
+      leftPad: 24,         // 选区可拖范围左侧 padding
+      rightPad: 24,        // 选区可拖范围右侧 padding
+      borderColor: "#ffffff",
+      borderAlpha: 0.85,
+      bgAlpha: 0.04,
+    },
   },
 
   models: {

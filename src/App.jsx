@@ -3,6 +3,7 @@ import Scene3D from "./scene/Scene3D.jsx";
 import TopNav from "./ui/TopNav.jsx";
 import MiddlePills from "./ui/MiddlePills.jsx";
 import BottomBar from "./ui/BottomBar.jsx";
+import EventDetail from "./ui/EventDetail.jsx";
 
 export default function App() {
   return (
@@ -14,6 +15,7 @@ export default function App() {
         <TopNav />
         <MiddlePills />
         <BottomBar />
+        <EventDetail />
       </div>
     </div>
   );
