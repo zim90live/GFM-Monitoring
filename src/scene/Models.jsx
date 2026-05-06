@@ -3,6 +3,8 @@ import * as THREE from "three";
 import { useGLTF } from "@react-three/drei";
 import { useControls, folder } from "leva";
 import { defaults } from "../config/params.js";
+import { shadowsRef } from "./shadowRef.js";
+import MetricsHud from "./MetricsHud.jsx";
 import modelUrl from "../../assets/models/模型导出 - 0430.glb?url";
 
 // ============== Fresnel 着色器材质（外壳用） ==============
@@ -145,6 +147,18 @@ export default function Models({ envIntensity = 1 }) {
     u.uBaseOpacity.value = mat.shellBaseOpacity;
   }, [fresnelMat, mat.shellColor, mat.shellRimColor, mat.shellRimPower, mat.shellRimIntensity, mat.shellBaseOpacity]);
 
+  // 模型挂载完毕后触发阴影重烘焙（避开"空场景累积"的脏数据）
+  useEffect(() => {
+    if (!setup.storage && !setup.grid) return;
+    // 等待两帧，确保 primitive 把 object 真正挂入场景图后再 reset
+    const id = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        shadowsRef.current?.reset();
+      });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [setup]);
+
   // 应用普通设备材质（inner）
   useEffect(() => {
     for (const m of setup.innerMaterials) {
@@ -185,6 +199,9 @@ export default function Models({ envIntensity = 1 }) {
           <primitive object={setup.grid} />
         </group>
       )}
+
+      {/* 跟随两个模型的浮动指标面板 */}
+      <MetricsHud transforms={transform} />
     </>
   );
 }

@@ -1,0 +1,21 @@
+<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="32.000000" height="32.000000" fill="none" customFrame="url(#clipPath_8)">
+	<defs>
+		<radialGradient id="paint_radial_0" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(-32.4176,0,0,-32,16,32)">
+			<stop stop-color="rgb(255,255,255)" offset="0" stop-opacity="1" />
+			<stop stop-color="rgb(255,255,255)" offset="1" stop-opacity="0" />
+		</radialGradient>
+		<clipPath id="clipPath_8">
+			<rect width="32.000000" height="32.000000" x="0.000000" y="0.000000" rx="16.000000" fill="rgb(255,255,255)" />
+		</clipPath>
+		<clipPath id="clipPath_9">
+			<rect width="16.000000" height="16.000000" x="8.000000" y="8.000000" fill="rgb(255,255,255)" />
+		</clipPath>
+	</defs>
+	<rect id="图标按钮" width="32.000000" height="32.000000" x="0.000000" y="0.000000" rx="16.000000" fill="rgb(255,255,255)" fill-opacity="0" />
+	<rect id="图标按钮" width="32.000000" height="32.000000" x="0.000000" y="0.000000" rx="16.000000" fill="url(#paint_radial_0)" fill-opacity="0" />
+	<rect id="图标按钮" width="31.000000" height="31.000000" x="0.500000" y="0.500000" rx="15.500000" stroke="rgb(255,255,255)" stroke-opacity="0.200000003" stroke-width="1" />
+	<g id="ic" customFrame="url(#clipPath_9)">
+		<rect id="ic" width="16.000000" height="16.000000" x="8.000000" y="8.000000" />
+		<path id="Path" d="M15.9987 16.3335C17.9317 16.3335 19.4987 14.7665 19.4987 12.8335C19.4987 10.9005 17.9317 9.3335 15.9987 9.3335C14.0657 9.3335 12.4987 10.9005 12.4987 12.8335C12.4987 14.7665 14.0657 16.3335 15.9987 16.3335ZM16.1211 22.6668C19.4858 22.6659 22.1687 22.6278 22.1687 20.9447C22.1687 18.9058 19.7439 17.0488 15.9902 17.0011C12.2478 17.0576 9.83203 18.9106 9.83203 20.9447C9.83203 22.6278 12.5178 22.6659 15.886 22.6668L16.0035 22.6668L16.1211 22.6668Z" fill="rgb(255,255,255)" fill-opacity="0.400000006" fill-rule="evenodd" />
+	</g>
+</svg>

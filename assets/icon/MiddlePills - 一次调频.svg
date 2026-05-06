@@ -1,0 +1,24 @@
+<svg viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="36.000000" height="36.000000" fill="none" customFrame="url(#clipPath_4)">
+	<defs>
+		<linearGradient id="paint_linear_2" x1="18" x2="18" y1="0" y2="36" gradientUnits="userSpaceOnUse">
+			<stop stop-color="rgb(255,255,255)" offset="0" stop-opacity="0" />
+			<stop stop-color="rgb(255,255,255)" offset="1" stop-opacity="1" />
+		</linearGradient>
+		<clipPath id="clipPath_4">
+			<rect width="36.000000" height="36.000000" x="0.000000" y="0.000000" rx="18.000000" fill="rgb(255,255,255)" />
+		</clipPath>
+		<clipPath id="clipPath_5">
+			<rect width="24.000000" height="24.000000" x="6.000000" y="6.000000" rx="9.000000" fill="rgb(255,255,255)" />
+		</clipPath>
+	</defs>
+	<rect id="容器 30861" width="36.000000" height="36.000000" x="0.000000" y="0.000000" rx="18.000000" fill="rgb(209,118,48)" />
+	<rect id="容器 30861" width="36.000000" height="36.000000" x="0.000000" y="0.000000" rx="18.000000" fill="url(#paint_linear_2)" fill-opacity="0.200000003" />
+	<g id="dp_signal_lined" customFrame="url(#clipPath_5)">
+		<rect id="dp_signal_lined" width="24.000000" height="24.000000" x="6.000000" y="6.000000" rx="9.000000" />
+		<rect id="Path" width="1.500000" height="5.000000" x="10.250000" y="20.000000" rx="0.750000" fill="rgb(255,255,255)" />
+		<rect id="Path" width="1.500000" height="6.500000" x="13.750000" y="18.500000" rx="0.750000" fill="rgb(255,255,255)" />
+		<rect id="Path" width="1.500000" height="8.500000" x="17.250000" y="16.500000" rx="0.750000" fill="rgb(255,255,255)" />
+		<rect id="Path" width="1.500000" height="11.000000" x="20.750000" y="14.000000" rx="0.750000" fill="rgb(255,255,255)" />
+		<rect id="Path" width="1.500000" height="14.000000" x="24.250000" y="11.000000" rx="0.750000" fill="rgb(255,255,255)" />
+	</g>
+</svg>

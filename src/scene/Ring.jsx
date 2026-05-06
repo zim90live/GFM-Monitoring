@@ -1,8 +1,14 @@
 import React, { useMemo, useEffect, useState, useRef } from "react";
 import * as THREE from "three";
-import { MeshTransmissionMaterial } from "@react-three/drei";
+import { MeshTransmissionMaterial, Html } from "@react-three/drei";
 import { useControls, folder, button } from "leva";
 import { defaults } from "../config/params.js";
+
+// 每段对应的日期（按段索引 0..7）
+const SEGMENT_DATES = [
+  "04-30", "04-29", "04-28", "04-27",
+  "04-26", "04-25", "04-24", "04-30",
+];
 
 // ============== InstancedMesh 子组件 ==============
 function InstancedTiles({ tiles, geometry, material, castShadow, receiveShadow }) {
@@ -237,6 +243,39 @@ export default function Ring({ envIntensity = 1 }) {
     [tiles.length, a.coloredRatio, a.seed]
   );
 
+  // ===== 每段日期标签的世界坐标（局部于旋转 group） =====
+  const segmentLabels = useMemo(() => {
+    const segments = defaults.ring.segments.map((_, i) => ({
+      yOffset: segCfg[`y${i}`],
+      ratio: segCfg[`r${i}`],
+    }));
+    const totalRatio =
+      segments.reduce((s, x) => s + Math.max(x.ratio, 0), 0) || 1;
+
+    const result = [];
+    let cumAngle = -Math.PI / 2;
+    for (let i = 0; i < segments.length; i++) {
+      const seg = segments[i];
+      const ratio = Math.max(seg.ratio, 0) / totalRatio;
+      const segAngle = ratio * Math.PI * 2;
+      if (segAngle <= 0) {
+        cumAngle += segAngle;
+        continue;
+      }
+      const centerAngle = cumAngle + segAngle / 2;
+      const px = Math.cos(centerAngle) * r.radius;
+      const pz = Math.sin(centerAngle) * r.radius;
+      const py = r.heightBase + seg.yOffset + 0.6;
+      result.push({
+        position: [px, py, pz],
+        date: SEGMENT_DATES[i % SEGMENT_DATES.length],
+        key: i,
+      });
+      cumAngle += segAngle;
+    }
+    return result;
+  }, [r.radius, r.heightBase, segCfg]);
+
   // ===== 按材质分组（InstancedMesh 每组一个） =====
   const groupedTiles = useMemo(() => {
     const g = { glass: [], pink: [], orange: [], blue: [], green: [] };
@@ -297,6 +336,19 @@ export default function Ring({ envIntensity = 1 }) {
             />
           );
         })}
+
+        {/* 每段日期标签（处于旋转 group 内 → 自动跟随环旋转） */}
+        {segmentLabels.map((s) => (
+          <Html
+            key={s.key}
+            position={s.position}
+            center
+            style={{ pointerEvents: "none" }}
+            zIndexRange={[5, 0]}
+          >
+            <div className="ring-date-label">{s.date}</div>
+          </Html>
+        ))}
       </group>
     </>
   );

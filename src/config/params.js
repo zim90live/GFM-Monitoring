@@ -9,16 +9,20 @@ export const defaults = {
 
   camera: {
     fov: 32,
-    tiltDeg: 30,
+    tiltDeg: 24,
     distance: 38,
-    targetY: -3.8,
+    targetY: -4.3,
   },
 
-  // PCSS 柔和阴影（drei <SoftShadows>）
+  // 累积阴影（drei <AccumulativeShadows> + <RandomizedLight>）
+  // 启动后累积 N 帧到贴图，之后零开销
   shadow: {
-    size: 50,
-    samples: 2,
-    focus: 0.1,
+    enabled: true,
+    frames: 60,            // 累积帧数（更多 = 更平滑但烘焙更久）
+    radius: 5,             // 随机化光源抖动半径（控制柔和度）
+    opacity: 0.8,          // 阴影整体不透明度
+    scale: 50,             // 阴影面尺寸
+    blend: 30,             // 混合
   },
 
   lights: {
@@ -78,7 +82,7 @@ export const defaults = {
       attenuationDistance: 3.0,
       // MTM 专属（drei MeshTransmissionMaterial）
       backside: true,
-      samples: 2,
+      samples: 8,
       resolution: 256,
       chromaticAberration: 0.06,
       anisotropy: 0.15,
