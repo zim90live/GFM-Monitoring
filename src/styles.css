@@ -276,6 +276,28 @@ body {
   line-height: 1;
 }
 
+/* ===== 首页环中央大标题 ===== */
+.ring-title {
+  position: absolute;
+  left: 0;
+  right: 0;
+  /* 1080 设计稿垂直居中 → 540 - 行高/2；如需微调改这里 */
+  top: 300px;
+  text-align: center;
+  font-size: 32px;
+  font-weight: 900;
+  /* Heavy */
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: #ffffff;
+  /* 上 100% → 下 60% 的不透明度渐变 */
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.6) 100%);
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.6) 100%);
+  pointer-events: none;
+  user-select: none;
+  z-index: 4;
+}
+
 /* ===== 中间胶囊行（漂浮在 BottomBar 上方） ===== */
 .middle-pills {
   position: absolute;

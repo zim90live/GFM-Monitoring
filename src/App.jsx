@@ -4,6 +4,7 @@ import TopNav from "./ui/TopNav.jsx";
 import MiddlePills from "./ui/MiddlePills.jsx";
 import BottomBar from "./ui/BottomBar.jsx";
 import EventDetail from "./ui/EventDetail.jsx";
+import RingTitle from "./ui/RingTitle.jsx";
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
       </div>
       <div className="ui">
         <TopNav />
+        <RingTitle />
         <MiddlePills />
         <BottomBar />
         <EventDetail />
